@@ -28,6 +28,22 @@ services:
     depends_on:
      - sql-master
     restart: unless-stopped
+    # Slave sql delayed
+  sql-slave-delayed:
+    build: sql-slave-delayed/
+    container_name: sql-slave-delayed
+    environment:
+     - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    ports:
+     - "3308:3306"
+    volumes:
+     - ${SLAVE_DELAYED_DIR}:/var/lib/mysql
+     - /tmp:/tmp
+     - ${SLAVE_DELAYED_LOGS_DIR}:/var/log/mysql
+    depends_on:
+     - sql-master
+     - sql-slave
+    restart: unless-stopped
     # Webfront test  
   web:
     build: web/
