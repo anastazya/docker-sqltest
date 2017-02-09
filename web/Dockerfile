@@ -18,24 +18,18 @@ RUN apt-get -y --force-yes --no-install-recommends install \
         nano && \
         a2enmod rewrite && \
         a2enmod expires && \
-        a2enmod ssl && \
-        a2ensite default-ssl.conf && \
         rm -rf /var/lib/apt/lists/*
 
 COPY apache2 /etc/apache2
 COPY php.ini /etc/php/7.0/apache2/
-COPY xdebug.ini /etc/php/7.0/mods-available/ 
 
 COPY apache2 /etc/apache2
 COPY php.ini /etc/php/7.0/apache2/
 COPY php.ini /etc/php/7.0/cli/
-COPY xdebug.ini /etc/php/7.0/mods-available/
 
 COPY apache2-foreground.sh /
 RUN chmod 755 /apache2-foreground.sh
 
 VOLUME /var/www
 
-EXPOSE 443
-EXPOSE 80
 ENTRYPOINT ["/apache2-foreground.sh"]
