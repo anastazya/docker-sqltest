@@ -1,0 +1,80 @@
+version: '2'
+services:
+  # Master sql test
+  sql-master:
+    build: sql-master/
+    container_name: sql-master
+    environment:
+     - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    ports:
+     - "3306:3306"
+    volumes:
+     - ${MASTER_DIR}:/var/lib/mysql
+     - /tmp:/tmp
+     - ${MASTER_LOGS_DIR}:/var/log/mysql
+    restart: unless-stopped
+    # Slave sql test
+  sql-slave:
+    build: sql-slave/
+    container_name: sql-slave
+    environment:
+     - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    ports:
+     - "3307:3306"
+    volumes:
+     - ${SLAVE_DIR}:/var/lib/mysql
+     - /tmp:/tmp
+     - ${SLAVE_LOGS_DIR}:/var/log/mysql
+    depends_on:
+     - sql-master
+    restart: unless-stopped
+    # Webfront test  
+  web:
+    build: web/
+    container_name: web
+    ports:
+     - "80:80"
+     - "443:443"
+    volumes:
+     - ${WWW_DIR}:/var/www
+     - /tmp:/tmp
+     - ${WWW_LOGS_DIR}:/var/log/apache2
+    depends_on:
+     - sql-master
+    restart: unless-stopped
+    # Memcached
+  memcached:
+    build: memcached/
+    container_name: memcached
+    ports:
+     - "11211:11211"
+    restart: unless-stopped
+    ########### portainer interface ########## 
+  templates:
+    image: portainer/templates
+    container_name: "portainer-templates"
+    networks:
+      - local
+    restart: unless-stopped  
+  portainer:
+    image: portainer/portainer
+    container_name: "portainer-app"
+    command: --templates http://templates/templates.json -d /data
+    networks:
+      - local
+    ports:
+     - "9000:9000"
+    restart: unless-stopped 
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${PT_DATA_DIR}:/data
+  watchtower:
+    image: centurylink/watchtower
+    container_name: "portainer-watchtower"
+    command: --cleanup portainer-app
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped  
+networks:
+  local:
+    driver: bridge
