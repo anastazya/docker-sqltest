@@ -57,6 +57,15 @@ services:
     depends_on:
      - sql-master
     restart: unless-stopped
+     # MaxScale SQL load-balancer
+  maxscale:
+    build: maxscale/
+    container_name: maxscale
+    ports:
+     - "4000:4000"
+    volumes:
+    - ${MAXSCALE_LOGS_DIR}:/var/log/maxscale 
+    restart: unless-stopped 
     # Memcached
   memcached:
     build: memcached/
